@@ -1,0 +1,39 @@
+{
+  "name": "natspector",
+  "version": "0.1.0",
+  "dependencies": [
+    "brotli",
+    "cnats",
+    "cxxopts",
+    "fmt",
+    "ftxui",
+    "gtest"
+  ],
+  "builtin-baseline": "df8bfe519564ae001903e5cdd32af0999531ef71",
+  "overrides": [
+    {
+      "name": "brotli",
+      "version": "1.1.0"
+    },
+    {
+      "name": "cnats",
+      "version": "3.8.2"
+    },
+    {
+      "name": "cxxopts",
+      "version": "3.1.1"
+    },
+    {
+      "name": "fmt",
+      "version": "11.0.2#1"
+    },
+    {
+      "name": "ftxui",
+      "version": "6.0.2"
+    },
+    {
+      "name": "gtest",
+      "version": "1.13.0"
+    }
+  ]
+}

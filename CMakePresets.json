@@ -1,0 +1,39 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30,
+    "patch": 0
+  },
+  "include": [],
+  "configurePresets": [
+    {
+      "name": "linux-dbg",
+      "displayName": "Linux Debug",
+      "description": "Sets Ninja generator, compilers, build and install directory, debug build type",
+      "generator": "Ninja",
+      "binaryDir": "./build/linux-dbg",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MAKE_PROGRAM": "/usr/bin/ninja",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_TOOLCHAIN_FILE": {
+          "value": "~/dev/tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
+          "type": "FILEPATH"
+        }
+      }
+    },
+    {
+      "name": "linux-rel",
+      "displayName": "Linux Release",
+      "inherits": "linux-dbg",
+      "binaryDir": "./build/linux-rel",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

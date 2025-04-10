@@ -1,0 +1,29 @@
+/build
+
+# CLion User-specific:
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+
+# CLion Machine-specific:
+.idea/vcs.xml
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.xml
+
+# CLion CMake and build-specific files:
+.idea/cmake.xml
+.idea/compiler.xml
+
+# CLion Temporary and cache files:
+.idea/*.iws
+.idea/.name
+
+# CLion Run/Debug Configurations:
+.idea/runConfigurations/
+
+# CLion Other:
+.idea/dictionaries/
+.idea/copyright/
+.idea/scopes/
+
