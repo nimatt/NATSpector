@@ -8,6 +8,29 @@
 #include <nats/nats.h>
 
 namespace NATSpector {
+class NatsConnection;
+struct NatsMessage {
+  std::string topic;
+};
+
+using NatsMessageHandler = std::function<void(NatsMessage)>;
+
+class NatsSubscription {
+public:
+  explicit NatsSubscription(
+      std::unique_ptr<natsSubscription, std::function<void(natsSubscription *)>>
+          &&subscription,
+      std::string topic,
+      NatsMessageHandler &&handler);
+  std::string topic;
+  NatsMessageHandler handler;
+
+private:
+  friend NatsConnection;
+  std::unique_ptr<natsSubscription, std::function<void(natsSubscription *)>>
+      subscription_;
+};
+
 struct NatsServer {
   std::string id{};
   std::string url{};
@@ -36,6 +59,9 @@ public:
 
   [[nodiscard]] auto is_valid() const -> bool;
 
+  auto subscribe(const std::string &topic, NatsMessageHandler handler)
+      -> void;
+
 private:
   explicit NatsConnection(natsStatus initialStatus);
   explicit NatsConnection(
@@ -49,6 +75,8 @@ private:
   std::unique_ptr<natsConnection, std::function<void(natsConnection *)>>
       connection_;
   std::unique_ptr<natsOptions, std::function<void(natsOptions *)>> options_;
+
+  std::vector<std::shared_ptr<NatsSubscription>> subscriptions_;
 
   bool closed{false};
 

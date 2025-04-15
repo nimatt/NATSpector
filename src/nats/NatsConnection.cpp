@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <mutex>
+#include <nats/nats.h>
 
 namespace NATSpector {
 namespace {
@@ -11,7 +12,28 @@ std::filesystem::path get_env_variable_path(const std::string &name) {
   }
   return std::filesystem::path{}; // Environment variable not set
 }
+
+void on_message(natsConnection *,
+               natsSubscription *,
+               natsMsg *msg,
+               void *closure) {
+  if (closure != nullptr) {
+    const auto handler = static_cast<NatsMessageHandler *>(closure);
+
+    (*handler)(NatsMessage{.topic = natsMsg_GetSubject(msg)});
+  }
+
+  natsMsg_Destroy(msg);
+}
 } // namespace
+
+NatsSubscription::NatsSubscription(
+    std::unique_ptr<natsSubscription, std::function<void(natsSubscription *)>>
+        &&subscription,
+    std::string topic,
+    NatsMessageHandler &&handler)
+    : topic{std::move(topic)}, handler{std::move(handler)},
+      subscription_{std::move(subscription)} {}
 
 NatsConnection::NatsConnection() : NatsConnection{NATS_OK} {}
 
@@ -149,5 +171,26 @@ NatsConnection::~NatsConnection() {
 
 auto NatsConnection::is_valid() const -> bool {
   return !closed && status_ == NATS_OK && connection_ != nullptr;
+}
+
+auto NatsConnection::subscribe(const std::string &topic,
+                               NatsMessageHandler handler) -> void {
+  if (!is_valid()) {
+    throw std::invalid_argument("Invalid connection");
+  }
+
+  auto subscription = std::make_shared<NatsSubscription>(
+      std::unique_ptr<natsSubscription,
+                      std::function<void(natsSubscription *)>>{
+          nullptr, natsSubscription_Destroy},
+      topic,
+      std::move(handler));
+  natsConnection_Subscribe(std::out_ptr(subscription->subscription_),
+                           connection_.get(),
+                           topic.c_str(),
+                           on_message,
+                           &subscription->handler);
+
+  subscriptions_.push_back(std::move(subscription));
 }
 } // namespace NATSpector

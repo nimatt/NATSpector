@@ -25,6 +25,10 @@ int main() {
     std::println("{}", result.error().reason);
   }
 
+  connection.subscribe(">", [](const NATSpector::NatsMessage &message) {
+    std::println("message: {}", message.topic);
+  });
+
   std::jthread service{[&](const std::stop_token &stoppingToken) {
     while (!stoppingToken.stop_requested()) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
