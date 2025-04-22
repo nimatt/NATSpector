@@ -10,7 +10,9 @@
 namespace NATSpector {
 class NatsConnection;
 struct NatsMessage {
-  std::string topic;
+  std::string subject;
+  std::unordered_map<std::string, std::vector<std::string>> headers;
+  std::span<const std::byte> data;
 };
 
 using NatsMessageHandler = std::function<void(NatsMessage)>;

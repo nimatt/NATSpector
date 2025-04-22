@@ -13,14 +13,47 @@ std::filesystem::path get_env_variable_path(const std::string &name) {
   return std::filesystem::path{}; // Environment variable not set
 }
 
+auto get_headers(natsMsg *msg)
+    -> std::unordered_map<std::string, std::vector<std::string>> {
+  std::unordered_map<std::string, std::vector<std::string>> headers{};
+
+  int headerKeyCount{0};
+  std::unique_ptr<const char *> keys{nullptr};
+  natsMsgHeader_Keys(msg, std::out_ptr(keys), &headerKeyCount);
+
+  for (int i = 0; i < headerKeyCount; i++) {
+    int valuesCount{0};
+    std::unique_ptr<const char *> values{nullptr};
+    natsMsgHeader_Values(
+        msg, keys.get()[i], std::out_ptr(values), &valuesCount);
+
+    std::vector<std::string> headerValues{};
+    headerValues.reserve(valuesCount);
+    for (int j = 0; j < valuesCount; j++) {
+      headerValues.emplace_back(values.get()[j]);
+    }
+
+    headers.insert_or_assign(std::string{keys.get()[i]},
+                             std::move(headerValues));
+  }
+
+  return headers;
+}
+
 void on_message(natsConnection *,
-               natsSubscription *,
-               natsMsg *msg,
-               void *closure) {
+                natsSubscription *,
+                natsMsg *msg,
+                void *closure) {
   if (closure != nullptr) {
     const auto handler = static_cast<NatsMessageHandler *>(closure);
 
-    (*handler)(NatsMessage{.topic = natsMsg_GetSubject(msg)});
+    const auto dataLength = natsMsg_GetDataLength(msg);
+    (*handler)(NatsMessage{
+        .subject = natsMsg_GetSubject(msg),
+        .headers = get_headers(msg),
+        .data =
+            std::span{reinterpret_cast<const std::byte *>(natsMsg_GetData(msg)),
+                      static_cast<size_t>(dataLength)}});
   }
 
   natsMsg_Destroy(msg);
